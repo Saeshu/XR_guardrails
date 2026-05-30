@@ -1,18 +1,26 @@
-import numpy as np
+import cv2
+import torch
+from torch.utils.data import Dataset
+from augmentations.quality_transforms import apply_augmentation
 
-def check_contrast(image):
-    return np.std(image)
+class XrayDataset(Dataset):
+    def __init__(self, image_paths):
+        self.image_paths = image_paths
 
-def check_brightness(image):
-    return np.mean(image)
+    def __len__(self):
+        return len(self.image_paths)
 
-def diagnose(image):
-    issues = []
+    def __getitem__(self, idx):
+        img_path = self.image_paths[idx]
+        image = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
 
-    if check_contrast(image) < 0.05:
-        issues.append("low_contrast")
+        image = cv2.resize(image, (224, 224))
 
-    if check_brightness(image) < 0.2:
-        issues.append("underexposed")
+        image, metadata = apply_augmentation(image)
 
-    return issues
+        image = image / 255.0
+        image = torch.tensor(image).unsqueeze(0).float()
+
+        label = torch.tensor(metadata["label"]).float()
+
+        return image, label, metadata
