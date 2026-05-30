@@ -1,7 +1,7 @@
 import cv2
 import torch
 from torch.utils.data import Dataset
-from augmentations.quality_transforms import apply_augmentation
+from augmentations import apply_augmentation
 
 class XrayDataset(Dataset):
     def __init__(self, image_paths):
